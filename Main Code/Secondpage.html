@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Page 2</title>
+  <style>
+    body {
+      margin: 0;
+      background-color: rgb(0, 0, 0);
+      height: 100vh;
+      font-family: sans-serif;
+      overflow: hidden;
+      position: relative;
+      padding: 20px;
+    }
+    /* Star and shooting star canvases (background) */
+    .star-canvas,
+    .shooting-star-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .shooting-star-canvas {
+      z-index: 1;
+    }
+    .container {
+      width: 100%;
+      max-width: 500px;
+      text-align: center;
+      margin: 0 auto;
+      position: relative;
+      z-index: 2;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      height: 100vh;
+    }
+    .glow-wrapper {
+      position: relative;
+      padding: 5px;
+      border-radius: 16px;
+      margin-bottom: 20px;
+    }
+    .glow-wrapper::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      border-radius: 16px;
+      background: linear-gradient(45deg, red, orange, yellow, green, blue, indigo, violet, red);
+      background-size: 400% 400%;
+      z-index: 0;
+      filter: blur(10px);
+      animation: rgbGlow 6s linear infinite;
+    }
+    @keyframes rgbGlow {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    .message-box {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      height: 350px;
+      overflow: hidden;
+      border-radius: 10px;
+      background-color: rgba(79, 0, 0, 0.95);
+      padding: 10px;
+      box-shadow: 0 0 32px 4px rgba(255,0,0,0.25);
+    }
+    /* Sparkles inside message box */
+    .sparkle-canvas {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 2;
+      border-radius: 10px;
+    }
+    .message-container {
+      display: flex;
+      flex-direction: column;
+      animation: scrollUp linear infinite;
+      position: relative;
+      z-index: 3;
+    }
+    .message-line {
+      font-size: 18px;
+      padding: 10px 0;
+      text-align: center;
+      white-space: pre-wrap;
+      color: #fffbe8;
+      text-shadow: 0 0 6px #ff9, 0 0 2px #fff;
+      font-family: 'Segoe Script', cursive, sans-serif;
+    }
+    @keyframes scrollUp {
+      0% { transform: translateY(100%); }
+      100% { transform: translateY(-100%); }
+    }
+    /* Responsive */
+    @media (max-width: 600px) {
+      .message-box { height: 250px; }
+      .message-line { font-size: 15px; padding: 7px 0; }
+      .container { max-width: 99vw; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Twinkling stars background -->
+  <canvas class="star-canvas"></canvas>
+  <!-- Shooting stars background -->
+  <canvas class="shooting-star-canvas"></canvas>
+  <div class="container">
+    <div class="glow-wrapper">
+      <div class="message-box">
+        <canvas class="sparkle-canvas"></canvas>
+        <div class="message-container" id="messageContainer"></div>
+      </div>
+    </div>
+  </div>
+  <script>
+    // --- Shyari scrolling logic ---
+    const fullMessage = `
+Happy Birthday Tanisha!
+
+Chaandni raat mein tera khyaal bahut aata hai,  
+Dil ko teri muskaan bahut bhaata hai.  
+Teri yaadon ki khushboo se mahakta hai man,  
+Tu mile toh har lamha haseen sa lagta hai.  
+
+Teri baaton mein wo meethaas hai,  
+Jo har dard ko chura le jaaye.  
+Tere kareeb aakar ye dil,  
+Sirf tera hi ho jaaye.  
+
+Teri aankhon mein doobne ka man karta hai,  
+Tere hothon pe muskaan sajane ka man karta hai.  
+Tu rahe saath mere har pal,  
+Bas yahi dua dil se karta hai. 
+`;
+
+    const messageContainer = document.getElementById("messageContainer");
+    const lines = fullMessage.trim().split('\n');
+    lines.forEach(text => {
+      const line = document.createElement("div");
+      line.className = "message-line";
+      line.textContent = text.trim();
+      messageContainer.appendChild(line);
+    });
+    // Scroll duration
+    const scrollSpeed = 10; // pixels per second
+    const lineHeight = window.innerWidth < 600 ? 27 : 40;
+    const totalHeight = lines.length * lineHeight;
+    const duration = totalHeight / scrollSpeed;
+    messageContainer.style.animationDuration = `${duration}s`;
+
+    // --- Sparkles animation inside the box ---
+    const sparkleCanvas = document.querySelector('.sparkle-canvas');
+    const sparkleCtx = sparkleCanvas.getContext('2d');
+    function resizeSparkleCanvas() {
+      sparkleCanvas.width = sparkleCanvas.offsetWidth;
+      sparkleCanvas.height = sparkleCanvas.offsetHeight;
+    }
+    window.addEventListener('resize', resizeSparkleCanvas);
+    resizeSparkleCanvas();
+
+    // Sparkle particle system
+    const sparkles = [];
+    function randomColor() {
+      const colors = ['#fffbe8', '#ffe4b5', '#ffd700', '#ffffff', '#ffc0cb'];
+      return colors[Math.floor(Math.random() * colors.length)];
+    }
+    function createSparkle() {
+      const x = Math.random() * sparkleCanvas.width;
+      const y = Math.random() * sparkleCanvas.height;
+      const r = Math.random() * 2.2 + 1;
+      return {
+        x, y, r,
+        alpha: 1,
+        color: randomColor(),
+        dx: (Math.random() - 0.5) * 0.8,
+        dy: (Math.random() - 0.5) * 0.8,
+        shrink: Math.random() * 0.03 + 0.01
+      };
+    }
+    function drawSparkles() {
+      sparkleCtx.clearRect(0, 0, sparkleCanvas.width, sparkleCanvas.height);
+      for (let i = sparkles.length - 1; i >= 0; i--) {
+        const s = sparkles[i];
+        sparkleCtx.save();
+        sparkleCtx.globalAlpha = s.alpha;
+        sparkleCtx.beginPath();
+        sparkleCtx.arc(s.x, s.y, s.r, 0, 2 * Math.PI);
+        sparkleCtx.fillStyle = s.color;
+        sparkleCtx.shadowColor = s.color;
+        sparkleCtx.shadowBlur = 12;
+        sparkleCtx.fill();
+        sparkleCtx.restore();
+        s.x += s.dx;
+        s.y += s.dy;
+        s.r -= s.shrink;
+        s.alpha -= 0.012;
+        if (s.r <= 0.5 || s.alpha <= 0) sparkles.splice(i, 1);
+      }
+      // Add new sparkles randomly
+      if (Math.random() < 0.5) sparkles.push(createSparkle());
+      requestAnimationFrame(drawSparkles);
+    }
+    drawSparkles();
+
+    // --- Twinkling stars background ---
+    const starCanvas = document.querySelector('.star-canvas');
+    const starCtx = starCanvas.getContext('2d');
+    let staticStars = [];
+    function resizeStarCanvas() {
+      starCanvas.width = window.innerWidth;
+      starCanvas.height = window.innerHeight;
+      // Recreate static stars on resize
+      generateStaticStars();
+    }
+    window.addEventListener('resize', resizeStarCanvas);
+    resizeStarCanvas();
+
+    function generateStaticStars() {
+      staticStars = [];
+      const numStars = Math.floor((window.innerWidth * window.innerHeight) / 1800); // density
+      for (let i = 0; i < numStars; i++) {
+        staticStars.push({
+          x: Math.random() * starCanvas.width,
+          y: Math.random() * starCanvas.height,
+          r: Math.random() * 1.5 + 0.6,
+          alpha: Math.random() * 0.5 + 0.4,
+          twinkleSpeed: Math.random() * 0.04 + 0.015,
+          twinkleOffset: Math.random() * Math.PI * 2
+        });
+      }
+    }
+
+    function drawStaticStars(time) {
+      starCtx.clearRect(0, 0, starCanvas.width, starCanvas.height);
+      for (const star of staticStars) {
+        const twinkle = Math.sin(time * star.twinkleSpeed + star.twinkleOffset) * 0.16 + star.alpha;
+        starCtx.save();
+        starCtx.globalAlpha = twinkle;
+        starCtx.beginPath();
+        starCtx.arc(star.x, star.y, star.r, 0, 2 * Math.PI);
+        starCtx.fillStyle = '#fffbe8';
+        starCtx.shadowColor = '#fff';
+        starCtx.shadowBlur = 10;
+        starCtx.fill();
+        starCtx.restore();
+      }
+      requestAnimationFrame(drawStaticStars);
+    }
+    generateStaticStars();
+    requestAnimationFrame(drawStaticStars);
+
+    // --- Shooting stars on background ---
+    const shootingStarCanvas = document.querySelector('.shooting-star-canvas');
+    const shootingStarCtx = shootingStarCanvas.getContext('2d');
+    function resizeShootingStarCanvas() {
+      shootingStarCanvas.width = window.innerWidth;
+      shootingStarCanvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeShootingStarCanvas);
+    resizeShootingStarCanvas();
+
+    function createShootingStar() {
+      const startX = Math.random() * shootingStarCanvas.width;
+      const startY = Math.random() * (shootingStarCanvas.height * 0.7);
+      const length = Math.random() * 120 + 60;
+      const angle = Math.PI / 5 + Math.random() * (Math.PI / 8);
+      const speed = Math.random() * 4 + 3;
+      return {
+        x: startX,
+        y: startY,
+        len: length,
+        angle,
+        speed,
+        alpha: 1,
+        trail: []
+      };
+    }
+    const shootingStars = [];
+    function drawShootingStars() {
+      shootingStarCtx.clearRect(0, 0, shootingStarCanvas.width, shootingStarCanvas.height);
+      // Draw stars
+      for (let i = shootingStars.length - 1; i >= 0; i--) {
+        const s = shootingStars[i];
+        // Draw trail
+        shootingStarCtx.save();
+        for (let t = 0; t < s.trail.length; t++) {
+          const trailAlpha = s.alpha * (1 - t / s.trail.length);
+          shootingStarCtx.globalAlpha = trailAlpha;
+          shootingStarCtx.beginPath();
+          shootingStarCtx.arc(s.trail[t].x, s.trail[t].y, 2, 0, 2 * Math.PI);
+          shootingStarCtx.fillStyle = '#fff';
+          shootingStarCtx.fill();
+        }
+        shootingStarCtx.globalAlpha = s.alpha;
+        shootingStarCtx.beginPath();
+        shootingStarCtx.arc(s.x, s.y, 2.8, 0, 2 * Math.PI);
+        shootingStarCtx.fillStyle = '#fff';
+        shootingStarCtx.shadowColor = '#fff';
+        shootingStarCtx.shadowBlur = 18;
+        shootingStarCtx.fill();
+        shootingStarCtx.restore();
+        // Move star
+        s.x += Math.cos(s.angle) * s.speed;
+        s.y += Math.sin(s.angle) * s.speed;
+        s.trail.unshift({x: s.x, y: s.y});
+        if (s.trail.length > 18) s.trail.pop();
+        s.alpha -= 0.012;
+        if (s.x > shootingStarCanvas.width || s.y > shootingStarCanvas.height || s.alpha <= 0.01) shootingStars.splice(i, 1);
+      }
+      // Add new shooting stars randomly
+      if (Math.random() < 0.022) shootingStars.push(createShootingStar());
+      requestAnimationFrame(drawShootingStars);
+    }
+    drawShootingStars();
+
+    // --- Redirect after shyari finishes scrolling ---
+    const nextPageUrl = "/Main Code/ThirdPage.html"; // Change to your next page
+    setTimeout(() => {
+      window.location.href = nextPageUrl;
+    }, duration * 1000 + 1200); // Give a short delay after scroll ends
+  </script>
+</body>
+</html>

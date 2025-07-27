@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Page 3</title>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background: #000;
+      overflow: hidden;
+    }
+    #stars {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      display: block;
+      z-index: 0;
+    }
+    .moon {
+      position: absolute;
+      top: 32px; left: 32px;
+      width: 120px; height: 120px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 0 60px 30px #fff8;
+      z-index: 1;
+    }
+    .birthday-img {
+      position: absolute;
+      top: 170px;
+      left: 170px;
+      transform: translateX(-50%);
+      width: 400px;
+      max-width: 80vw;
+      box-shadow: 0 8px 32px rgba(31, 31, 31, 0.533);
+      border-radius: 22px;
+      z-index: 2;
+      background: #fff0;
+      transition: box-shadow .2s;
+    }
+    .birthday-img:hover {
+      box-shadow: 0 12px 48px #ffd70099;
+    }
+
+    /* New: Styles for the video */
+    .birthday-cat-gif {
+  position: absolute;
+  left: 50%;
+  bottom: 32px;           /* Controls how far from the bottom it sits */
+  transform: translateX(-50%);
+  width: 900px;           /* Adjust to your preferred size */
+  max-width: 150vw;
+  z-index: 10;
+  border-radius: 18px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+  background: transparent;
+}
+@media (max-width: 700px) {
+  .birthday-cat-gif {
+    width: 600px;
+    bottom: 12px;
+    border-radius: 10px;
+  }
+}
+  </style>
+</head>
+<body>
+  <canvas id="stars"></canvas>
+  <div class="moon"></div>
+  <div class="birthday-table">
+    <div class="table-line"></div>
+  </div>
+  <!-- Your existing image (optional) -->
+  <img src="/Assist/Image/Image.png" alt="Happy Birthday" class="birthday-img" />
+
+  <img 
+  src="/Assist/Mp4 Video/Cat-Video-unscreen.gif" class="birthday-cat-gif" alt="Birthday cat Animation" title="Birthday cat Animation" />
+
+  <script>
+    // Responsive canvas
+    const canvas = document.getElementById('stars');
+    const ctx = canvas.getContext('2d');
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    // Stars data
+    const NUM_STARS = 100;
+    let stars = [];
+    function createStars() {
+      stars = [];
+      for (let i = 0; i < NUM_STARS; i++) {
+        stars.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          r: Math.random() * 1.8 + 0.5,
+          tw: Math.random() * 100
+        });
+      }
+    }
+    createStars();
+
+    // Draw stars with twinkle
+    function drawStars(time) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#fff";
+      for (let star of stars) {
+        let twinkle = Math.sin((time / 600) + star.tw) * 0.4 + 0.6;
+        ctx.globalAlpha = twinkle;
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, star.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+      requestAnimationFrame(drawStars);
+    }
+    drawStars(0);
+
+    // Recreate stars on resize
+    window.addEventListener('resize', () => {
+      resize();
+      createStars();
+    });
+
+    // ---- AUTO REDIRECT TO NEXT PAGE ----
+    setTimeout(() => {
+      window.location.href = "/Main code/FourthPage.html"; // Change this if your next page filename is different
+    }, 3000); // 3 seconds
+    // ------------------------------------
+  </script>
+</body>
+</html>
